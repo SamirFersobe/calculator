@@ -1,101 +1,117 @@
-import Image from "next/image";
+'use client'
+import { useState } from "react"
+import { Plus, Minus } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
-export default function Home() {
+export default function DiscountCalculator() {
+  const [price, setPrice] = useState("")
+  const [discounts, setDiscounts] = useState([""])
+  const [exchangeRate, setExchangeRate] = useState("")
+
+  const addDiscount = () => setDiscounts([...discounts, ""])
+  const removeDiscount = (index: number) => {
+    const newDiscounts = discounts.filter((_, i) => i !== index)
+    setDiscounts(newDiscounts)
+  }
+
+  const updateDiscount = (index: number, value: string) => {
+    const newDiscounts = [...discounts]
+    newDiscounts[index] = value
+    setDiscounts(newDiscounts)
+  }
+
+  const calculateFinalPrice = () => {
+    let finalPrice = parseFloat(price)
+    if (isNaN(finalPrice)) return { php: 0, jpy: 0 }
+
+    discounts.forEach((discount) => {
+      const discountValue = parseFloat(discount)
+      if (!isNaN(discountValue)) {
+        finalPrice -= (finalPrice * discountValue) / 100
+      }
+    })
+
+    const php = isNaN(parseFloat(exchangeRate))
+      ? 0
+      : finalPrice * parseFloat(exchangeRate)
+
+    return {
+      jpy: finalPrice.toFixed(2),
+      php: php.toFixed(2),
+    }
+  }
+
+  const { php, jpy } = calculateFinalPrice()
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-6 text-center">
+          Discount Calculator
+        </h1>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="price">Original Price (JPY)</Label>
+            <Input
+              id="price"
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="Enter original price"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+          {discounts.map((discount, index) => (
+            <div key={index} className="flex items-center space-x-2">
+              <Input
+                type="number"
+                value={discount}
+                onChange={(e) => updateDiscount(index, e.target.value)}
+                placeholder={`Discount ${index + 1} (%)`}
+              />
+              {index === discounts.length - 1 ? (
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={addDiscount}
+                  className="flex-shrink-0"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => removeDiscount(index)}
+                  className="flex-shrink-0"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          ))}
+          <div>
+            <Label htmlFor="exchangeRate">Exchange Rate (1 JPY to PHP)</Label>
+            <Input
+              id="exchangeRate"
+              type="number"
+              value={exchangeRate}
+              onChange={(e) => setExchangeRate(e.target.value)}
+              placeholder="Enter exchange rate"
+            />
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="mt-6 p-4 bg-gray-50 rounded-md">
+          <h2 className="text-lg font-semibold mb-2">Final Price:</h2>
+          <p className="text-xl">
+            PHP: <span className="font-bold">{php}</span>
+          </p>
+          <p className="text-xl">
+            JPY: <span className="font-bold">{jpy}</span>
+          </p>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
